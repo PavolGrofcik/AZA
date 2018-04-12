@@ -13,7 +13,7 @@
 #define D1  150				//* y - súradnica
 #define D2  22500			//* dx - súradnica
 #define D3  247500			//* dy - súradnica
-#define SIZE  2722500		//Úplná ve¾kos hash map-y
+#define SIZE  57600000		//Úplná ve¾kos hash map-y
 
 
 
@@ -65,7 +65,7 @@ void deallocate_hash_map() {
 //Funkcia zahashuje danı stav do hash_mapy a urèí èi sa má prida do fronty
 int hashing(int x, int y, int dx, int dy) {
 	int sum;
-	sum = x + D1 * y + abs(D2 * dx) + abs(D3 * dy);
+	sum = x + D1 * y + D2*(dx+5) + D3*(dx+5);
 
 	if (hash_map[sum] == 0) {								//Danı stav ešte nebol vygenerovanı
 		hash_map[sum] = 1;
@@ -137,6 +137,7 @@ POINT* new_point(int x, int y, int dx, int dy, POINT *parent) {
 	tmp->dx = new_dx;
 	tmp->dy = new_dy;
 	tmp->parent = parent;
+	printf("Point bol vytvorenı z rodica x:%d y:%d dx:%d dy:%d\tchild dx:%d dy:%d\n", parent->x, parent->y,parent->dx,parent->dy,tmp->dx, tmp->dy);
 
 	return (POINT*)tmp;
 }
@@ -248,11 +249,13 @@ int is_free(int dx, int dy) {
 
 //Funkcia zvaliduje èi panáèik nevyboèil z mapy
 int is_valid_move(POINT* p, int x, int y, int size_x, int size_y) {
-	int p_x = p->x;	//1
-	int p_y = p->y;	//18
+	//int p_x = p->x;	//1
+	//int p_y = p->y;	//18
 
 	int p_dx = p->dx + x;//-1
 	int p_dy = p->dy + y;//6
+	int p_x;
+	int p_y;
 
 	printf("p_dx: %d p_dy: %d\n", p_dx, p_dy);
 	//Aby sa nešlo do zápornıch indexov
@@ -261,8 +264,11 @@ int is_valid_move(POINT* p, int x, int y, int size_x, int size_y) {
 	}
 
 	if (is_free(p_dx, p_dy)) {		//pohyb je <=25
-		p_x += p_dx;
-		p_y += p_dy;
+		//p_x += p_dx;
+		//p_y += p_dy;
+		p_x = p->x + p_dx;
+		p_y = p->y + p_dy;
+
 
 		//Overí èi sa dá prejs cez mapu a cez zakázané políèka
 		if (p_x < 0 || p_x >= size_x || p_y < 0 || p_y >= size_y || arr[p_x][p_y] == 'X') {
@@ -270,6 +276,7 @@ int is_valid_move(POINT* p, int x, int y, int size_x, int size_y) {
 		}
 		else
 		{
+			printf("Prešlo: p_dx: %d p_dy: %d p_x: %d p_y: %d\n", p_dx, p_dy,p_x,p_y);
 			return 1;
 		}
 	}
@@ -306,7 +313,7 @@ POINT* breadt_first_search(POINT *p, int end_x, int end_y, int size_x, int size_
 		printf("\nPred pohybom\tx: %d y:%d dx:%d dy:%d\n", new->x, new->y, new->dx, new->dy);
 		if (is_valid_move(new, -1, -1, size_x, size_y)) {
 			if (hashing(new->x + new->dx - 1, new->y + new->dy - 1, new->dx - 1, new->dy - 1)) {
-				tmp = new_point(new->x , new->y,-1,  1, new);
+				tmp = new_point(new->x , new->y,-1, -1, new);
 				add_to_front(tmp);
 			}
 		}//-1,0
