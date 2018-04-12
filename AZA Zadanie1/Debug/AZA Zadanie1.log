@@ -1,5 +1,7 @@
 ﻿  Source.c
 c:\users\grofc\source\repos\aza zadanie1\aza zadanie1\source.c(52): warning C4133: '=': incompatible types - from 'FRONT *' to 'int *'
 c:\users\grofc\source\repos\aza zadanie1\aza zadanie1\source.c(55): warning C4098: 'initialize_hash_map': 'void' function returning a value
-c:\users\grofc\source\repos\aza zadanie1\aza zadanie1\source.c(138): warning C4101: 'sec': unreferenced local variable
+c:\users\grofc\source\repos\aza zadanie1\aza zadanie1\source.c(158): warning C4101: 'sec': unreferenced local variable
+c:\users\grofc\source\repos\aza zadanie1\aza zadanie1\source.c(362): warning C4101: 'tmp': unreferenced local variable
+c:\users\grofc\source\repos\aza zadanie1\aza zadanie1\source.c(362): warning C4101: 'next': unreferenced local variable
   AZA Zadanie1.vcxproj -> C:\Users\grofc\source\repos\AZA Zadanie1\Debug\AZA Zadanie1.exe

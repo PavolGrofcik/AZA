@@ -77,6 +77,26 @@ int hashing(int x, int y, int dx, int dy) {
 	}
 }
 
+//Funkcia dealokuje frontu
+void deallocate_front() {
+	FRONT* tmp = head, *next;
+
+	if (tmp == NULL) {
+		printf("Fronta prázdna");
+		return;
+	}
+	else
+	{
+		while (tmp->next != NULL) {
+			next = tmp->next;
+			free(tmp);
+			tmp = next;
+		}
+		free(tmp);
+		head = last = NULL;
+	}
+}
+
 
 //Funkcia testuje èi je fronta prázdna alebo nie
 int is_empty_front() {
@@ -129,7 +149,7 @@ void add_to_front(POINT *node) {
 		tmp->next->prev = tmp;
 
 		//Aktualizovanie posledného
-		last = tmp;
+		last = tmp->next;
 	}
 }
 
@@ -247,47 +267,50 @@ POINT* breadt_first_search(POINT *p, int end_x, int end_y, int size_x, int size_
 
 		//Case dx = -1
 		//-1,1
-		printf("Pred pohybom\tx: %d y:%d dx:%d dy:%d\n", new->x, new->y, new->dx, new->dy);
+		printf("\nPred pohybom\tx: %d y:%d dx:%d dy:%d\n", new->x, new->y, new->dx, new->dy);
 		if (is_valid_move(new, new->dx - 1, new->dy - 1, size_x, size_y)) {
 			if (hashing(new->x + new->dx - 1, new->y + new->dy - 1, new->dx - 1, new->dy - 1)) {
 				tmp = new_point(new->x + new->dx - 1, new->y + new->dy - 1, new->dx - 1, new->dy - 1, new);
 				add_to_front(tmp);
 			}
 		}//-1,0
-		else if (is_valid_move(new, new->dx - 1, new->dy, size_x, size_y)) {
-			if(hashing(new->x + new->dx - 1, new->y + new->dy, new->dx - 1, new->dy)){
-			tmp = new_point(new->x + new->dx - 1, new->y + new->dy, new->dx - 1, new->dy, new);
-			add_to_front(tmp);
-		}
+		if (is_valid_move(new, new->dx - 1, new->dy, size_x, size_y)) {
+			if (hashing(new->x + new->dx - 1, new->y + new->dy, new->dx - 1, new->dy)) {
+				tmp = new_point(new->x + new->dx - 1, new->y + new->dy, new->dx - 1, new->dy, new);
+				add_to_front(tmp);
+			}
 		}//-1,+1
-		else if (is_valid_move(new, new->dx - 1, new->dy + 1, size_x, size_y)) {
+		if (is_valid_move(new, new->dx - 1, new->dy + 1, size_x, size_y)) {
 			if (hashing(new->x + new->dx - 1, new->y + new->dy + 1, new->dx - 1, new->dy + 1)) {
 				tmp = new_point(new->x + new->dx - 1, new->y + new->dy + 1, new->dx - 1, new->dy + 1, new);
 				add_to_front(tmp);
 			}
 		}
-		printf("x bolo - 1\tx: %d y:%d dx:%d dy:%d\n", new->x, new->y, new->dx, new->dy);
+		printf("Po prvych 3\tx: %d y:%d dx:%d dy:%d\n", new->x, new->y, new->dx, new->dy);
 		//Case: dx = 0
 		//0,-1
-		if (is_valid_move(new, new->dx , new->dy - 1, size_x, size_y)) {
+		if (is_valid_move(new, new->dx, new->dy - 1, size_x, size_y)) {
 			if (hashing(new->x + new->dx, new->y + new->dy - 1, new->dx, new->dy - 1)) {
 				tmp = new_point(new->x + new->dx, new->y + new->dy - 1, new->dx, new->dy - 1, new);
 				add_to_front(tmp);
 			}
 		}//0,0
-		else if (is_valid_move(new, new->dx, new->dy, size_x, size_y)) {
+		if (is_valid_move(new, new->dx, new->dy, size_x, size_y)) {
 			if (hashing(new->x + new->dx, new->y + new->dy, new->dx, new->dy)) {
 				tmp = new_point(new->x + new->dx, new->y + new->dy, new->dx, new->dy, new);
 				add_to_front(tmp);
 			}
-		}//0,+1
-		else if (is_valid_move(new, new->dx, new->dy + 1, size_x, size_y)) {
+		}
+		
+		if (is_valid_move(new, new->dx, new->dy + 1, size_x, size_y)) {
 			if (hashing(new->x + new->dx, new->y + new->dy + 1, new->dx, new->dy + 1)) {
+				printf("Som tuuuu\n");
 				tmp = new_point(new->x + new->dx, new->y + new->dy + 1, new->dx, new->dy + 1, new);
 				add_to_front(tmp);
 			}
 		}
-		printf("x bolo - 0\tx: %d y:%d dx:%d dy:%d\n", new->x, new->y, new->dx, new->dy);
+
+		printf("Po druhych 3\tx: %d y:%d dx:%d dy:%d\n", new->x, new->y, new->dx, new->dy);
 		//Case: dx = +1
 		//1,-1
 		if (is_valid_move(new, new->dx + 1, new->dy - 1, size_x, size_y)) {
@@ -296,13 +319,14 @@ POINT* breadt_first_search(POINT *p, int end_x, int end_y, int size_x, int size_
 				add_to_front(tmp);
 			}
 		}//1,0
-		else if (is_valid_move(new, new->dx + 1, new->dy, size_x, size_y)) {
-			if (hashing(new->x + new->dx + 1, new->y + new->dy, new->dx + 1,new->dy)) {
+		if (is_valid_move(new, new->dx + 1, new->dy, size_x, size_y)) {
+			if (hashing(new->x + new->dx + 1, new->y + new->dy, new->dx + 1, new->dy)) {
 				tmp = new_point(new->x + new->dx + 1, new->y + new->dy, new->dx + 1, new->dy, new);
 				add_to_front(tmp);
 			}
 		}//1,1
-		else if (is_valid_move(new, new->dx + 1, new->dy + 1, size_x, size_y)) {
+
+		if (is_valid_move(new, new->dx + 1, new->dy + 1, size_x, size_y)) {
 			if (hashing(new->x + new->dx + 1, new->y + new->dy + 1, new->dx + 1, new->dy + 1)) {
 				tmp = new_point(new->x + new->dx + 1, new->y + new->dy + 1, new->dx + 1, new->dy + 1, new);
 				add_to_front(tmp);
@@ -313,7 +337,6 @@ POINT* breadt_first_search(POINT *p, int end_x, int end_y, int size_x, int size_
 	}
 
 	//Ak sa riešenie nenašlo
-	printf("No solution\n");
 	return NULL;
 }
 
@@ -336,7 +359,7 @@ int main(void) {
 	int scenario, x, y, start_x, start_y, end_x, end_y, c, i, j;
 	FILE *f = NULL;
 
-	POINT* p = NULL;
+	POINT* p = NULL, *tmp, *next;
 	POINT *path = NULL;
 
 
@@ -397,10 +420,15 @@ int main(void) {
 			{
 				//Tu bude výpis cesty cez dva for-y (funkcia vypis_riesenia())
 				printf("Solution was found!\n");
+				while (path->parent != NULL) {
+					printf("x:%d y:%d dx:%d, dy:%d\n", path->x, path->y, path->dx, path->dy);
+					path = path->parent;
+				}
+				printf("x:%d y:%d dx:%d, dy:%d\n", p->x, p->y, p->dx, p->dy);
 			}
 
 			printf("--------------------\n");
-
+			deallocate_front();
 			deallocate_hash_map();
 			scenario--;
 		}
