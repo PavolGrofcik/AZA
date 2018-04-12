@@ -5,11 +5,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #define NAME "AZA1.in"
 
 //Konštanty pre hash_map
-#define D1  150			//* y - súradnica
+#define D1  150				//* y - súradnica
 #define D2  22500			//* dx - súradnica
 #define D3  247500			//* dy - súradnica
 #define SIZE  2722500		//Úplná ve¾kos hash map-y
@@ -39,7 +40,7 @@ typedef struct front {
 //Globálne premenné programu
 char arr[150][150];
 
-FRONT *head = NULL; 
+FRONT *head = NULL;
 FRONT *last = NULL;
 
 int *hash_map = NULL;
@@ -47,8 +48,8 @@ int *hash_map = NULL;
 
 //Funkcia inicializuje hash_map - u
 void initialize_hash_map() {
-	
-	hash_map = (FRONT*)calloc(SIZE,sizeof(int));			//Inicializuje hodnoty na 0
+
+	hash_map = (FRONT*)calloc(SIZE, sizeof(int));			//Inicializuje hodnoty na 0
 	if (hash_map == NULL) {
 		printf("Nepodarilo sa pridelit pamat\n");
 		return NULL;
@@ -64,7 +65,7 @@ void deallocate_hash_map() {
 //Funkcia zahashuje danı stav do hash_mapy a urèí èi sa má prida do fronty
 int hashing(int x, int y, int dx, int dy) {
 	int sum;
-	sum = x + D1 * y + D2 * dx + D3 * dy;
+	sum = x + D1 * y + abs(D2 * dx) + abs(D3 * dy);
 
 	if (hash_map[sum] == 0) {								//Danı stav ešte nebol vygenerovanı
 		hash_map[sum] = 1;
@@ -93,6 +94,7 @@ int is_empty_front() {
 FRONT* new_node(POINT *node) {
 	FRONT *tmp = (FRONT*)malloc(sizeof(FRONT));
 	tmp->next = NULL;
+	tmp->prev = NULL;
 	tmp->point = node;
 
 	return tmp;
@@ -108,7 +110,7 @@ POINT* new_point(int x, int y, int dx, int dy, POINT *parent) {
 	tmp->dy = dy;
 	tmp->parent = parent;
 
-	return (POINT*) tmp;
+	return (POINT*)tmp;
 }
 //Urobi pointer na koniec a na zaèiatok
 void add_to_front(POINT *node) {
@@ -172,19 +174,8 @@ POINT* pop_from_front() {
 
 		//Posun o jeden uzol spa
 		last = iterator;
-		
-		return (POINT*)tmp;
-	}
-}
 
-//Funkcia zvaliduje èi panáèik nevyboèil z mapy
-int is_valid_move(int x, int y, int size_x, int size_y) {
-	if (x < 0 || x >= size_x || y < 0 || y >= size_y || arr[x][y] == 'X') {
-		return 0;
-	}
-	else
-	{
-		return 1;
+		return (POINT*)tmp;
 	}
 }
 
@@ -197,8 +188,6 @@ int power_of_two(int x) {
 //Funkcia overí èi pre danı pohyb je platnı aj dx2 <= 25
 int is_free(int dx, int dy) {
 
-	int sum = 0;
-
 	if ((power_of_two(dx) + power_of_two(dy)) <= 25) {
 		return 1;
 	}
@@ -208,11 +197,40 @@ int is_free(int dx, int dy) {
 	}
 }
 
+//Funkcia zvaliduje èi panáèik nevyboèil z mapy
+int is_valid_move(POINT* p, int x, int y, int size_x, int size_y) {
+	int p_x = p->x;
+	int p_y = p->y;
+
+	int p_dx = p->dx + x;
+	int p_dy = p->dy + y;
+
+	if (is_free(p_dx, p_dy)) {		//pohyb je <=25
+		p_x += p_dx;
+		p_y += p_dy;
+
+		//Overí èi sa dá prejs cez mapu a cez zakázané políèka
+		if (p_x < 0 || p_x >= size_x || p_y < 0 || p_y >= size_y || arr[p_x][p_y] == 'X') {
+			return 0;
+		}
+		else
+		{
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+
 
 //Algoritmus nájdenia najlepšej cesty
 POINT* breadt_first_search(POINT *p, int end_x, int end_y, int size_x, int size_y) {
 
 	POINT* new = NULL;
+	POINT* tmp = NULL;
+	FRONT* generated_node = NULL;
+
 	add_to_front(p);
 
 	while (!is_empty_front()) {
@@ -224,30 +242,80 @@ POINT* breadt_first_search(POINT *p, int end_x, int end_y, int size_x, int size_
 			printf("Koniec\n");
 			return new;
 		}
-
 		//V tejto èasti ošetri hashovaním
-		if (is_valid_move(new->dx - 1 , new->dy, size_x, size_y)) {
-			//Pridám novovygenerované stavy do fronty a hash mapy
+		//Pridám novovygenerované stavy do fronty a hash mapy
 
+		//Case dx = -1
+		//-1,1
+		printf("Pred pohybom\tx: %d y:%d dx:%d dy:%d\n", new->x, new->y, new->dx, new->dy);
+		if (is_valid_move(new, new->dx - 1, new->dy - 1, size_x, size_y)) {
+			if (hashing(new->x + new->dx - 1, new->y + new->dy - 1, new->dx - 1, new->dy - 1)) {
+				tmp = new_point(new->x + new->dx - 1, new->y + new->dy - 1, new->dx - 1, new->dy - 1, new);
+				add_to_front(tmp);
+			}
+		}//-1,0
+		else if (is_valid_move(new, new->dx - 1, new->dy, size_x, size_y)) {
+			if(hashing(new->x + new->dx - 1, new->y + new->dy, new->dx - 1, new->dy)){
+			tmp = new_point(new->x + new->dx - 1, new->y + new->dy, new->dx - 1, new->dy, new);
+			add_to_front(tmp);
 		}
-
-		//Ošetri duplikát #
-		if (is_valid_move(new->dx, new->dy, size_x, size_y));
-
-
-		if (is_valid_move(new->dx + 1, new->y, size_x, size_y)) {
-
+		}//-1,+1
+		else if (is_valid_move(new, new->dx - 1, new->dy + 1, size_x, size_y)) {
+			if (hashing(new->x + new->dx - 1, new->y + new->dy + 1, new->dx - 1, new->dy + 1)) {
+				tmp = new_point(new->x + new->dx - 1, new->y + new->dy + 1, new->dx - 1, new->dy + 1, new);
+				add_to_front(tmp);
+			}
 		}
-		
-
+		printf("x bolo - 1\tx: %d y:%d dx:%d dy:%d\n", new->x, new->y, new->dx, new->dy);
+		//Case: dx = 0
+		//0,-1
+		if (is_valid_move(new, new->dx , new->dy - 1, size_x, size_y)) {
+			if (hashing(new->x + new->dx, new->y + new->dy - 1, new->dx, new->dy - 1)) {
+				tmp = new_point(new->x + new->dx, new->y + new->dy - 1, new->dx, new->dy - 1, new);
+				add_to_front(tmp);
+			}
+		}//0,0
+		else if (is_valid_move(new, new->dx, new->dy, size_x, size_y)) {
+			if (hashing(new->x + new->dx, new->y + new->dy, new->dx, new->dy)) {
+				tmp = new_point(new->x + new->dx, new->y + new->dy, new->dx, new->dy, new);
+				add_to_front(tmp);
+			}
+		}//0,+1
+		else if (is_valid_move(new, new->dx, new->dy + 1, size_x, size_y)) {
+			if (hashing(new->x + new->dx, new->y + new->dy + 1, new->dx, new->dy + 1)) {
+				tmp = new_point(new->x + new->dx, new->y + new->dy + 1, new->dx, new->dy + 1, new);
+				add_to_front(tmp);
+			}
+		}
+		printf("x bolo - 0\tx: %d y:%d dx:%d dy:%d\n", new->x, new->y, new->dx, new->dy);
+		//Case: dx = +1
+		//1,-1
+		if (is_valid_move(new, new->dx + 1, new->dy - 1, size_x, size_y)) {
+			if (hashing(new->x + new->dx + 1, new->y + new->dy - 1, new->dx + 1, new->dy - 1)) {
+				tmp = new_point(new->x + new->dx + 1, new->y + new->dy - 1, new->dx + 1, new->dy - 1, new);
+				add_to_front(tmp);
+			}
+		}//1,0
+		else if (is_valid_move(new, new->dx + 1, new->dy, size_x, size_y)) {
+			if (hashing(new->x + new->dx + 1, new->y + new->dy, new->dx + 1,new->dy)) {
+				tmp = new_point(new->x + new->dx + 1, new->y + new->dy, new->dx + 1, new->dy, new);
+				add_to_front(tmp);
+			}
+		}//1,1
+		else if (is_valid_move(new, new->dx + 1, new->dy + 1, size_x, size_y)) {
+			if (hashing(new->x + new->dx + 1, new->y + new->dy + 1, new->dx + 1, new->dy + 1)) {
+				tmp = new_point(new->x + new->dx + 1, new->y + new->dy + 1, new->dx + 1, new->dy + 1, new);
+				add_to_front(tmp);
+			}
+		}
+		printf("Po iterácii\tx: %d y:%d dx:%d dy:%d\n", new->x, new->y, new->dx, new->dy);
 
 	}
-	
+
+	//Ak sa riešenie nenašlo
 	printf("No solution\n");
 	return NULL;
 }
-
-
 
 
 void vypis_labyrintu(int x, int y) {
@@ -265,13 +333,13 @@ void vypis_labyrintu(int x, int y) {
 
 int main(void) {
 
-	int scenario, x, y, start_x, start_y, end_x, end_y, c,i,j;
+	int scenario, x, y, start_x, start_y, end_x, end_y, c, i, j;
 	FILE *f = NULL;
 
 	POINT* p = NULL;
 	POINT *path = NULL;
 
-	
+
 	if ((f = fopen(NAME, "r")) == NULL) {				//Otvorenie súboru pre naèítavanie
 		printf("Nepodarilo sa otvorit subor\n");
 		return -1;
@@ -287,7 +355,7 @@ int main(void) {
 
 			fscanf(f, "%d", &start_x);		//Zaèiatok x v poli
 			fscanf(f, "%d\n", &start_y);	//Zaèiatok y v poli
-		
+
 			fscanf(f, "%d", &end_x);		//Koniec x v poli
 			fscanf(f, "%d\n", &end_y);		//Koniec y v poli
 
@@ -310,9 +378,16 @@ int main(void) {
 			//Úprava labyrintu cie¾ového bodu na písmeno Z
 			arr[end_x][end_y] = 'Z';
 
+
+			//Inicializácia hashmapy
+			initialize_hash_map();
+
+
 			//Volanie BFS
 			//Vytvorenie inicializaèného bodu
 			p = new_point(start_x, start_y, 0, 0, NULL);
+			hashing(start_x, start_y, 0, 0);
+
 			path = breadt_first_search(p, end_x, end_y, x, y);
 
 			if (path == NULL) {
@@ -321,9 +396,12 @@ int main(void) {
 			else
 			{
 				//Tu bude vıpis cesty cez dva for-y (funkcia vypis_riesenia())
+				printf("Solution was found!\n");
 			}
-			
+
 			printf("--------------------\n");
+
+			deallocate_hash_map();
 			scenario--;
 		}
 	}
