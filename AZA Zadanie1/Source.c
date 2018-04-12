@@ -51,7 +51,7 @@ int is_empty_front() {
 
 
 //Funkcia vytvorí nový uzol do fronty
-FRONT* novy_node(POINT *node) {
+FRONT* new_node(POINT *node) {
 	FRONT *tmp = (FRONT*)malloc(sizeof(FRONT));
 	tmp->next = NULL;
 	tmp->point = node;
@@ -61,7 +61,7 @@ FRONT* novy_node(POINT *node) {
 }
 
 //Funkcia vytvorí nový point
-POINT* novy_point(int x, int y, int dx, int dy, POINT *parent) {
+POINT* new_point(int x, int y, int dx, int dy, POINT *parent) {
 	POINT* tmp = (POINT*)malloc(sizeof(POINT));
 	tmp->x = x;
 	tmp->y = y;
@@ -72,19 +72,19 @@ POINT* novy_point(int x, int y, int dx, int dy, POINT *parent) {
 	return (POINT*) tmp;
 }
 //Urobi pointer na koniec a na zaèiatok
-void pridaj_do_fronty(POINT *node) {
+void add_to_front(POINT *node) {
 
 	FRONT *tmp = NULL;
 
 	//Pridanie node ak fronta je prázdna
 	if (head == NULL) {
-		head = last = novy_node(node);
+		head = last = new_node(node);
 		return;
 	}
 	else
 	{
 		tmp = last;
-		tmp->next = novy_node(node);
+		tmp->next = new_node(node);
 		tmp->next->prev = tmp;
 
 		//Aktualizovanie posledného
@@ -92,7 +92,7 @@ void pridaj_do_fronty(POINT *node) {
 	}
 }
 
-POINT* vyber_z_fronty() {
+POINT* pop_from_front() {
 
 	POINT *tmp, *sec;
 	FRONT *iterator, *return_node;
@@ -138,22 +138,67 @@ POINT* vyber_z_fronty() {
 	}
 }
 
+//Funkcia zvaliduje èi panáèik nevyboèil z mapy
+int is_valid_move(int x, int y, int size_x, int size_y) {
+	if (x < 0 || x >= size_x || y < 0 || y >= size_y || arr[x][y] == 'X') {
+		return 0;
+	}
+	else
+	{
+		return 1;
+	}
+}
+
+//Funkcia umocní x na druhú x^2
+int power_of_two(int x) {
+	int number = x;
+	return x * x;
+}
+
+//Funkcia overí èi pre daný pohyb je platný aj dx2 <= 25
+int is_free(POINT *p, int dx, int dy) {
+
+	int sum = 0;
+
+	if ((power_of_two(dx) + power_of_two(dy)) <= 25) {
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
 
 //Algoritmus nájdenia najlepšej cesty
-POINT* breadt_first_search(POINT *p, int end_x, int end_y) {
+POINT* breadt_first_search(POINT *p, int end_x, int end_y, int size_x, int size_y) {
 
 	POINT* new = NULL;
-	pridaj_do_fronty(p);
+	add_to_front(p);
 
 	while (!is_empty_front()) {
 
-		new = vyber_z_fronty();
+		new = pop_from_front();
 
 		//Cesta bola nájdená
 		if (arr[new->x][new->y] == arr[end_x][end_y]) {
 			printf("Koniec\n");
 			return new;
 		}
+
+		//V tejto èasti ošetri hashovaním
+		if (is_valid_move(new->x - 1 , new->y, size_x, size_y)) {
+			//Pridám novovygenerované stavy
+		}
+
+		//Ošetri duplikát
+		if (is_valid_move(new->x, new->y, size_x, size_y));
+
+
+		if (is_valid_move(new->x + 1, new->y, size_x, size_y)) {
+
+		}
+		
 
 
 	}
@@ -183,12 +228,7 @@ int main(void) {
 	int scenario, x, y, start_x, start_y, end_x, end_y, c,i,j;
 	FILE *f = NULL;
 
-	POINT* p = (POINT*)malloc(sizeof(POINT));
-	p->x = 0;
-	p->y = 0;
-	p->dx = 0;
-	p->dy = 0;
-	p->parent = NULL;
+	POINT* p = NULL;
 	POINT *path = NULL;
 
 	
@@ -227,14 +267,20 @@ int main(void) {
 
 			//Some code snippet of BFS
 			vypis_labyrintu(x, y);
+			//Úprava labyrintu cie¾ového bodu na písmen Z
+			arr[end_x][end_y] = 'Z';
+
 			//Volanie BFS
-			path = breadt_first_search(p, end_x, end_y);
+			//Vytvorenie inicializaèného bodu
+			p = new_point(start_x, start_y, 0, 0, NULL);
+			path = breadt_first_search(p, end_x, end_y, x, y);
+
 			if (path == NULL) {
 				printf("No solution\n");
 			}
 			else
 			{
-				//Tu bude výpis cesty cez dva for-y
+				//Tu bude výpis cesty cez dva for-y (funkcia vypis_riesenia())
 			}
 			
 			printf("--------------------\n");
