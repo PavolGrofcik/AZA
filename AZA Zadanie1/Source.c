@@ -8,6 +8,12 @@
 
 #define NAME "AZA1.in"
 
+//Konštanty pre hash_map
+#define D1  150			//* y - súradnica
+#define D2  22500			//* dx - súradnica
+#define D3  247500			//* dy - súradnica
+#define SIZE  2722500		//Úplná ve¾kos hash map-y
+
 
 
 //Štruktúra ktorá reprezentuje bod v mape //prerobi na long
@@ -32,10 +38,43 @@ typedef struct front {
 
 //Globálne premenné programu
 char arr[150][150];
-char goal[150][150];
 
 FRONT *head = NULL; 
 FRONT *last = NULL;
+
+int *hash_map = NULL;
+
+
+//Funkcia inicializuje hash_map - u
+void initialize_hash_map() {
+	
+	hash_map = (FRONT*)calloc(SIZE,sizeof(int));			//Inicializuje hodnoty na 0
+	if (hash_map == NULL) {
+		printf("Nepodarilo sa pridelit pamat\n");
+		return NULL;
+	}
+}
+
+//Funkcia dealokuje hash_map -u
+void deallocate_hash_map() {
+	free(hash_map);
+	hash_map = NULL;
+}
+
+//Funkcia zahashuje danı stav do hash_mapy a urèí èi sa má prida do fronty
+int hashing(int x, int y, int dx, int dy) {
+	int sum;
+	sum = x + D1 * y + D2 * dx + D3 * dy;
+
+	if (hash_map[sum] == 0) {								//Danı stav ešte nebol vygenerovanı
+		hash_map[sum] = 1;
+		return 1;
+	}
+	else
+	{
+		return 0;		//Danı stav u existuje, nepridám ho do fronty
+	}
+}
 
 
 //Funkcia testuje èi je fronta prázdna alebo nie
@@ -156,7 +195,7 @@ int power_of_two(int x) {
 }
 
 //Funkcia overí èi pre danı pohyb je platnı aj dx2 <= 25
-int is_free(POINT *p, int dx, int dy) {
+int is_free(int dx, int dy) {
 
 	int sum = 0;
 
@@ -187,15 +226,16 @@ POINT* breadt_first_search(POINT *p, int end_x, int end_y, int size_x, int size_
 		}
 
 		//V tejto èasti ošetri hashovaním
-		if (is_valid_move(new->x - 1 , new->y, size_x, size_y)) {
-			//Pridám novovygenerované stavy
+		if (is_valid_move(new->dx - 1 , new->dy, size_x, size_y)) {
+			//Pridám novovygenerované stavy do fronty a hash mapy
+
 		}
 
-		//Ošetri duplikát
-		if (is_valid_move(new->x, new->y, size_x, size_y));
+		//Ošetri duplikát #
+		if (is_valid_move(new->dx, new->dy, size_x, size_y));
 
 
-		if (is_valid_move(new->x + 1, new->y, size_x, size_y)) {
+		if (is_valid_move(new->dx + 1, new->y, size_x, size_y)) {
 
 		}
 		
@@ -267,7 +307,7 @@ int main(void) {
 
 			//Some code snippet of BFS
 			vypis_labyrintu(x, y);
-			//Úprava labyrintu cie¾ového bodu na písmen Z
+			//Úprava labyrintu cie¾ového bodu na písmeno Z
 			arr[end_x][end_y] = 'Z';
 
 			//Volanie BFS
