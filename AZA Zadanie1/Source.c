@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define NAME "AZA1.in"
+#define NAME "AZA2.in"
 
 //Konštanty pre hash_map
 #define D1  150				//* y - súradnica
@@ -276,7 +276,7 @@ int is_valid_move(POINT* p, int x, int y, int size_x, int size_y) {
 		}
 		else
 		{
-			printf("Prešlo: p_dx: %d p_dy: %d p_x: %d p_y: %d\n", p_dx, p_dy,p_x,p_y);
+			printf("Preslo: p_dx: %d p_dy: %d p_x: %d p_y: %d\n", p_dx, p_dy,p_x,p_y);
 			return 1;
 		}
 	}
